@@ -10,10 +10,8 @@ COPY src src/
 # Corrigir permissão do Maven Wrapper
 RUN chmod +x ./mvnw
 
-# Gerar JAR e verificar se foi criado
-RUN ./mvnw package -DskipTests && \
-    ls -la target/ && \
-    find target/ -name "*.jar" -type f
+# Gerar JAR
+RUN ./mvnw package -DskipTests
 
 # Etapa de execução
 FROM eclipse-temurin:21-jdk
@@ -27,5 +25,5 @@ COPY --from=build /workspace/app/target/*.jar app.jar
 # Expor a porta que a aplicação usa
 EXPOSE 8080
 
-# Executar a aplicação
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+# Executar a aplicação com configuração para mostrar mais logs
+ENTRYPOINT ["java", "-jar", "/app.jar", "--logging.level.org.springframework=DEBUG", "--logging.level.com.generation.farmacia=DEBUG"]
