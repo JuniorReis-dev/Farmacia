@@ -1,7 +1,6 @@
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /workspace/app
-
 COPY mvnw ./
 COPY .mvn .mvn/
 COPY pom.xml ./
@@ -14,7 +13,6 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../target/*.jar
 
 FROM eclipse-temurin:21-jdk
 
-VOLUME /tmp
 ARG DEPENDENCY=/workspace/app/target/dependency
 
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
