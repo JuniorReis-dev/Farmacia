@@ -29,7 +29,7 @@ public class Categoria {
 	@Pattern(regexp = "^[^0-9].*", message = "O título não pode ser apenas numérico")
 	private String tipo;
 	
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "categoria", cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "categoria", cascade = CascadeType.ALL)
 	@JsonIgnoreProperties("categoria") 
 	private List<Produto> produto; 
 
