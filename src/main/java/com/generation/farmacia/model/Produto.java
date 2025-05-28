@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 @Table(name = "tb_produtos")
@@ -37,7 +38,8 @@ public class Produto {
 	private String descricao;
 	
 	@NotNull(message = "quantidade é obrigatório!")
-	private int Estoque;
+	@PositiveOrZero(message = "O estoque não pode ser negativo!")
+	private Integer estoque;
 	
 	
 	@ManyToOne
@@ -84,11 +86,11 @@ public class Produto {
 	}
 
 	public int getEstoque() {
-		return Estoque;
+		return estoque;
 	}
 
 	public void setEstoque(int estoque) {
-		Estoque = estoque;
+		this.estoque = estoque;
 	}
 
 	public Categoria getCategoria() {
