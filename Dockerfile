@@ -10,24 +10,22 @@ COPY src src/
 # Corrigir permissão do Maven Wrapper
 RUN chmod +x ./mvnw
 
-# Gerar JAR corretamente antes de tentar extrair
-RUN ./mvnw package -DskipTests
-
-# Confirma se o JAR foi gerado antes de tentar extrair
-RUN mkdir -p target/dependency && \
-    if [ -f target/*.jar ]; then \
-        cd target/dependency && jar -xf ../target/*.jar; \
-    else \
-        echo "ERRO: Nenhum JAR encontrado na pasta target/!"; \
-        exit 1; \
-    fi
+# Gerar JAR e verificar se foi criado
+RUN ./mvnw package -DskipTests && \
+    ls -la target/ && \
+    find target/ -name "*.jar" -type f
 
 # Etapa de execução
 FROM eclipse-temurin:21-jdk
-ARG DEPENDENCY=/workspace/app/target/dependency
 
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+# Adicionar variável para resolver problemas de permissão no Railway
+ENV RAILWAY_RUN_UID=0
 
-ENTRYPOINT ["java", "-cp", "app:app/lib/*", "com.generation.farmacia.FarmaciaApplication"]
+# Copiar o JAR diretamente (sem extrair)
+COPY --from=build /workspace/app/target/*.jar app.jar
+
+# Expor a porta que a aplicação usa
+EXPOSE 8080
+
+# Executar a aplicação
+ENTRYPOINT ["java", "-jar", "/app.jar"]
