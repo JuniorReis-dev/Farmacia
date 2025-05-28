@@ -1,26 +1,29 @@
+# Etapa de construção
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /workspace/app
+COPY mvnw ./
+COPY .mvn .mvn/
+COPY pom.xml ./
+COPY src src/
 
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
+# Corrigir permissão do Maven Wrapper
+RUN chmod +x ./mvnw
 
-RUN chmod -R 777 ./mvnw
+# Gerar JAR
+RUN ./mvnw package -DskipTests
 
-RUN ./mvnw install -DskipTests
-
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
-
+# Etapa de execução
 FROM eclipse-temurin:21-jdk
 
-VOLUME /tmp
+# Adicionar variável para resolver problemas de permissão (se necessário)
+# ENV RAILWAY_RUN_UID=0 # Para Railway, pode não ser necessário no Render
 
-ARG DEPENDENCY=/workspace/app/target/dependency
+# Copiar o JAR diretamente (sem extrair)
+COPY --from=build /workspace/app/target/*.jar app.jar
 
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
+# Expor a porta que a aplicação usa
+EXPOSE 8080
 
-ENTRYPOINT ["java","-cp","app:app/lib/*","com.generation.farmacia.FarmaciaApplication"]
+# Executar a aplicação
+ENTRYPOINT ["java", "-jar", "/app.jar"]
