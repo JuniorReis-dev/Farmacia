@@ -1,3 +1,4 @@
+# Etapa de construção
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /workspace/app
@@ -9,10 +10,13 @@ COPY src src/
 RUN chmod +x ./mvnw
 RUN ./mvnw package -DskipTests
 
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../target/*.jar)
+# Confirma se o JAR foi gerado antes de tentar extraí-lo
+RUN mkdir -p target/dependency && \
+    ls -l target/*.jar && \
+    (cd target/dependency; jar -xf ../target/*.jar)
 
+# Etapa de execução
 FROM eclipse-temurin:21-jdk
-
 ARG DEPENDENCY=/workspace/app/target/dependency
 
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
